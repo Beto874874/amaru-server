@@ -5,6 +5,7 @@ import type {
   ActualizarInmuebleInput,
   CrearInmuebleInput,
   ListarInmueblesQuery,
+  ListarMisInmueblesQuery,
 } from './schemas.js';
 import * as servicio from './service.js';
 
@@ -27,6 +28,13 @@ function usuarioDe(req: Request): servicio.UsuarioSolicitante {
 export const listar: RequestHandler = async (req, res) => {
   const query = validado<ListarInmueblesQuery>(req, 'query');
   const resultado = await servicio.listar(query, req.user?.id);
+  res.status(200).json(resultado);
+};
+
+/** GET /inmuebles/mios (autenticado). Lista paginada de los inmuebles propios. */
+export const listarMios: RequestHandler = async (req, res) => {
+  const query = validado<ListarMisInmueblesQuery>(req, 'query');
+  const resultado = await servicio.listarMios(usuarioDe(req).id, query);
   res.status(200).json(resultado);
 };
 

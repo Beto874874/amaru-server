@@ -8,6 +8,7 @@ import {
   crearInmuebleSchema,
   idInmuebleParamsSchema,
   listarInmueblesSchema,
+  listarMisInmueblesSchema,
 } from './schemas.js';
 
 // Prefijo /api/v1/inmuebles.
@@ -16,6 +17,15 @@ export const inmueblesRouter = Router();
 // Publico: optionalAuth permite que el DTO marque `es_mio` y que `mias=true`
 // exija sesion dentro del service (401 si no hay usuario).
 inmueblesRouter.get('/', optionalAuth, validate({ query: listarInmueblesSchema }), controller.listar);
+
+// Va ANTES de '/:id': Express prueba las rutas en orden y '/mios' no debe
+// interpretarse como un id.
+inmueblesRouter.get(
+  '/mios',
+  authenticate,
+  validate({ query: listarMisInmueblesSchema }),
+  controller.listarMios,
+);
 
 inmueblesRouter.get(
   '/:id',

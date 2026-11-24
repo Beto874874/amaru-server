@@ -146,6 +146,41 @@ describe.skipIf(!HAY_BASE_DE_PRUEBAS)('integracion: inmuebles', () => {
     expect(conSesion.body.data[0].es_mio).toBe(true);
   });
 
+  it('GET /mios exige sesion, trae todos los estados y solo los propios', async () => {
+    const dueno = agenteDe(app);
+    await registrar(dueno, {
+      nombre: 'Dueno',
+      email: 'dueno@ejemplo.com',
+      password: PASSWORD,
+    }).then((r) => expect(r.status).toBe(201));
+    const otro = agenteDe(app);
+    await registrar(otro, {
+      nombre: 'Otro',
+      email: 'otro@ejemplo.com',
+      password: PASSWORD,
+    }).then((r) => expect(r.status).toBe(201));
+
+    await dueno.post(BASE).send(DATOS_INMUEBLE).then((r) => expect(r.status).toBe(201));
+    await dueno
+      .post(BASE)
+      .send({ ...DATOS_INMUEBLE, codigo_sae: 'WEB-2', estado_inmueble: 'Arrendado' })
+      .then((r) => expect(r.status).toBe(201));
+    await otro
+      .post(BASE)
+      .send({ ...DATOS_INMUEBLE, codigo_sae: 'WEB-3' })
+      .then((r) => expect(r.status).toBe(201));
+
+    expect((await agenteDe(app).get(`${BASE}/mios`)).status).toBe(401);
+
+    const mios = await dueno.get(`${BASE}/mios`);
+    expect(mios.status).toBe(200);
+    expect(mios.body.meta.total).toBe(2);
+    expect(mios.body.data.every((i: { es_mio: boolean }) => i.es_mio)).toBe(true);
+
+    const arrendados = await dueno.get(`${BASE}/mios`).query({ estado: 'Arrendado' });
+    expect(arrendados.body.meta.total).toBe(1);
+  });
+
   it('filtros, paginacion y orden estable', async () => {
     const dueno = agenteDe(app);
     await registrar(dueno, {

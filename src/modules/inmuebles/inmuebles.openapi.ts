@@ -6,6 +6,7 @@ import {
   inmuebleDetalleSchema,
   inmueblePublicoSchema,
   listarInmueblesBaseSchema,
+  listarMisInmueblesSchema,
   crearInmuebleSchema,
   actualizarInmuebleSchema,
 } from './schemas.js';
@@ -122,6 +123,35 @@ registry.registerPath({
         'application/json': {
           schema: respuestaListaInmueblesSchema,
           example: EJEMPLO_LISTA,
+        },
+      },
+    },
+    400: respuestasError[400],
+    401: respuestasError[401],
+    429: respuestasError[429],
+    500: respuestasError[500],
+  },
+});
+
+registry.registerPath({
+  method: 'get',
+  path: '/inmuebles/mios',
+  tags: ['Inmuebles'],
+  summary: 'Lista los inmuebles del usuario autenticado',
+  description:
+    'Requiere sesion (401 si no hay). Devuelve SOLO los inmuebles publicados por el ' +
+    'usuario del token, en cualquier estado salvo que se filtre con `estado`. Pensado ' +
+    'para el panel "Mis inmuebles": a diferencia de `GET /inmuebles?mias=true`, incluye ' +
+    'los Arrendados y No disponibles. Todos llegan con `es_mio: true`.',
+  security: [{ cookieAuth: [] }],
+  request: { query: listarMisInmueblesSchema },
+  responses: {
+    200: {
+      description: 'Lista paginada de los inmuebles propios',
+      content: {
+        'application/json': {
+          schema: respuestaListaInmueblesSchema,
+          example: { ...EJEMPLO_LISTA, data: [{ ...EJEMPLO_INMUEBLE, es_mio: true }] },
         },
       },
     },

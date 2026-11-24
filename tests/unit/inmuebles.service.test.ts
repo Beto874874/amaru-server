@@ -4,6 +4,7 @@ import {
   actualizarInmuebleSchema,
   crearInmuebleSchema,
   listarInmueblesSchema,
+  listarMisInmueblesSchema,
 } from '../../src/modules/inmuebles/schemas.js';
 import * as servicio from '../../src/modules/inmuebles/service.js';
 
@@ -505,5 +506,46 @@ describe('listar inmuebles', () => {
       { offset: 0, limit: 20 },
       { campo: 'fecha_publicacion', direccion: 'desc' },
     );
+  });
+});
+
+describe('listar mis inmuebles', () => {
+  it('filtra siempre por el usuario del token y no fuerza estado', async () => {
+    const resultado = await servicio.listarMios(7, listarMisInmueblesSchema.parse({}));
+
+    expect(repo.listar).toHaveBeenCalledWith(
+      { estado: undefined, miasDe: 7 },
+      { offset: 0, limit: 20 },
+      { campo: 'fecha_publicacion', direccion: 'desc' },
+    );
+    expect(resultado.data[0]).toMatchObject({ es_mio: false });
+    expect(resultado.data[0]).not.toHaveProperty('id_usuario');
+  });
+
+  it('respeta el estado, la pagina y el orden pedidos', async () => {
+    vi.mocked(repo.listar).mockResolvedValue({ filas: [fila({ id_usuario: 7 })], total: 30 });
+
+    const resultado = await servicio.listarMios(
+      7,
+      listarMisInmueblesSchema.parse({
+        estado: 'Arrendado',
+        page: '2',
+        limit: '10',
+        sort: 'valor_arriendo',
+        order: 'asc',
+      }),
+    );
+
+    expect(repo.listar).toHaveBeenCalledWith(
+      { estado: 'Arrendado', miasDe: 7 },
+      { offset: 10, limit: 10 },
+      { campo: 'valor_arriendo', direccion: 'asc' },
+    );
+    expect(resultado.data[0]?.es_mio).toBe(true);
+    expect(resultado.meta.totalPages).toBe(3);
+  });
+
+  it('rechaza parametros desconocidos como id_usuario', () => {
+    expect(listarMisInmueblesSchema.safeParse({ id_usuario: '1' }).success).toBe(false);
   });
 });

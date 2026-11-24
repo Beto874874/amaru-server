@@ -124,6 +124,18 @@ export const listarInmueblesSchema = listarInmueblesBaseSchema
     { message: 'area_min no puede ser mayor que area_max', path: ['area_min'] },
   );
 
+/**
+ * GET /inmuebles/mios. Panel "Mis inmuebles": a diferencia del listado publico,
+ * el estado es OPCIONAL y sin valor por defecto, porque el dueno necesita ver
+ * tambien los que marco como Arrendado o No disponible para poder reactivarlos.
+ */
+export const listarMisInmueblesSchema = z.strictObject({
+  ...paginacionCampos,
+  estado: estadoInmuebleSchema.optional().describe('Si falta, devuelve todos los estados'),
+  sort: z.enum(ORDEN_POR_CAMPOS).default('fecha_publicacion'),
+  order: z.enum(['asc', 'desc']).default('desc'),
+});
+
 export const idInmuebleParamsSchema = z.strictObject({
   id: z.coerce.number().int().positive(),
 });
@@ -178,6 +190,7 @@ export const inmuebleDetalleSchema = inmueblePublicoSchema.extend({
 export type CrearInmuebleInput = z.infer<typeof crearInmuebleSchema>;
 export type ActualizarInmuebleInput = z.infer<typeof actualizarInmuebleSchema>;
 export type ListarInmueblesQuery = z.infer<typeof listarInmueblesSchema>;
+export type ListarMisInmueblesQuery = z.infer<typeof listarMisInmueblesSchema>;
 export type ContactoDTO = z.infer<typeof contactoSchema>;
 export type InmueblePublico = z.infer<typeof inmueblePublicoSchema>;
 export type InmuebleDetalle = z.infer<typeof inmuebleDetalleSchema>;

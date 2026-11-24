@@ -322,6 +322,19 @@ GET /api/v1/inmuebles?q=apartamento%20norte&area_min=60&area_max=120
 GET /api/v1/inmuebles?mias=true          (requiere sesión)
 ```
 
+### Mis inmuebles (panel del dueño)
+
+```text
+GET /api/v1/inmuebles/mios                     (requiere sesión)
+GET /api/v1/inmuebles/mios?estado=Arrendado&page=2
+```
+
+Devuelve **solo** los inmuebles publicados por el usuario del token, en
+**cualquier estado** (a diferencia de `?mias=true`, que hereda el
+`estado=Disponible` por defecto del listado público). Acepta `page`, `limit`,
+`estado`, `sort` y `order`. Para editar o borrar se usan `PATCH` y `DELETE
+/inmuebles/{id}`: el servidor vuelve a comprobar que el solicitante sea el dueño.
+
 ### Detalle
 
 ```text
@@ -537,6 +550,7 @@ En general, al publicar un inmueble basta con enviar los campos
 | --------------------------------------------------- | :-------: | :-----: | :---: |
 | `GET /inmuebles` y `GET /inmuebles/{id}`            |    Sí     |   Sí    |  Sí   |
 | `GET /inmuebles?mias=true`                          |    No     |   Sí    |  Sí   |
+| `GET /inmuebles/mios` (solo los propios)            |    No     |   Sí    |  Sí   |
 | `POST /inmuebles`                                   |    No     |   Sí    |  Sí   |
 | `PATCH` / `DELETE /inmuebles/{id}`                  |    No     |  Solo si es el dueño | Sí (cualquiera) |
 | Subir, ordenar o borrar fotos de un inmueble        |    No     |  Solo si es el dueño | Sí (cualquiera) |

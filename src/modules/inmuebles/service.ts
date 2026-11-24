@@ -18,6 +18,7 @@ import type {
   InmuebleDetalle,
   InmueblePublico,
   ListarInmueblesQuery,
+  ListarMisInmueblesQuery,
 } from './schemas.js';
 
 export interface UsuarioSolicitante {
@@ -305,6 +306,26 @@ export async function listar(
       q: query.q,
       miasDe: query.mias ? usuarioId : undefined,
     },
+    { offset: calcularOffset(query), limit: query.limit },
+    { campo: query.sort, direccion: query.order },
+  );
+
+  return {
+    data: filas.map((fila) => aInmueblePublico(fila, usuarioId)),
+    meta: construirMeta(query, total),
+  };
+}
+
+/**
+ * Panel "Mis inmuebles": SOLO los del usuario del token, en cualquier estado.
+ * El id sale del JWT (nunca de la query), asi que nadie puede pedir los de otro.
+ */
+export async function listarMios(
+  usuarioId: number,
+  query: ListarMisInmueblesQuery,
+): Promise<RespuestaPaginada<InmueblePublico>> {
+  const { filas, total } = await repo.listar(
+    { estado: query.estado, miasDe: usuarioId },
     { offset: calcularOffset(query), limit: query.limit },
     { campo: query.sort, direccion: query.order },
   );

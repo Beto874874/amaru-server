@@ -89,7 +89,8 @@ export interface FiltrosLista {
   valorMax?: number;
   areaMin?: number;
   areaMax?: number;
-  estado: EstadoInmueble;
+  /** undefined = cualquier estado (solo lo usa el panel del dueno). */
+  estado?: EstadoInmueble;
   q?: string;
   miasDe?: number;
 }
@@ -105,7 +106,11 @@ export interface PaginacionDb {
 }
 
 function construirCondiciones(filtros: FiltrosLista): SQL[] {
-  const condiciones: SQL[] = [eq(inmueble.estado, filtros.estado)];
+  const condiciones: SQL[] = [];
+
+  if (filtros.estado !== undefined) {
+    condiciones.push(eq(inmueble.estado, filtros.estado));
+  }
 
   if (filtros.departamento !== undefined) {
     condiciones.push(eq(inmueble.id_departamento, filtros.departamento));
